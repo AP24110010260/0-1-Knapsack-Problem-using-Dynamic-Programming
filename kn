@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <limits>
 using namespace std;
 
 // Structure for items
@@ -36,9 +37,15 @@ int knapsackDP(int W, vector<int>& wt, vector<int>& val, int n, vector<int>& sel
 }
 
 // 🔹 Greedy (by value/weight ratio)
-bool cmp(Item a, Item b) {
-    double r1 = (double)a.value / a.weight;
-    double r2 = (double)b.value / b.weight;
+bool cmp(const Item &a, const Item &b) {
+    double r1 = (a.weight == 0)
+                ? (a.value > 0 ? numeric_limits<double>::infinity()
+                               : (a.value < 0 ? -numeric_limits<double>::infinity() : 0.0))
+                : (double)a.value / a.weight;
+    double r2 = (b.weight == 0)
+                ? (b.value > 0 ? numeric_limits<double>::infinity()
+                               : (b.value < 0 ? -numeric_limits<double>::infinity() : 0.0))
+                : (double)b.value / b.weight;
     return r1 > r2;
 }
 
