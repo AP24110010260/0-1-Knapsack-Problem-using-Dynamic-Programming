@@ -1,0 +1,111 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// Structure for items
+struct Item {
+    int weight, value, index;
+};
+
+// 🔹 Dynamic Programming Knapsack
+int knapsackDP(int W, vector<int>& wt, vector<int>& val, int n, vector<int>& selected) {
+    vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
+
+    for (int i = 1; i <= n; i++) {
+        for (int w = 0; w <= W; w++) {
+            if (wt[i - 1] <= w) {
+                dp[i][w] = max(val[i - 1] + dp[i - 1][w - wt[i - 1]],
+                               dp[i - 1][w]);
+            } else {
+                dp[i][w] = dp[i - 1][w];
+            }
+        }
+    }
+
+    // Backtrack to find selected items
+    int w = W;
+    for (int i = n; i > 0; i--) {
+        if (dp[i][w] != dp[i - 1][w]) {
+            selected.push_back(i - 1);
+            w -= wt[i - 1];
+        }
+    }
+
+    return dp[n][W];
+}
+
+// 🔹 Greedy (by value/weight ratio)
+bool cmp(Item a, Item b) {
+    double r1 = (double)a.value / a.weight;
+    double r2 = (double)b.value / b.weight;
+    return r1 > r2;
+}
+
+int knapsackGreedy(int W, vector<int>& wt, vector<int>& val, int n, vector<int>& selected) {
+    vector<Item> items;
+
+    for (int i = 0; i < n; i++) {
+        items.push_back({wt[i], val[i], i});
+    }
+
+    sort(items.begin(), items.end(), cmp);
+
+    int totalValue = 0;
+
+    for (auto& item : items) {
+        if (item.weight <= W) {
+            W -= item.weight;
+            totalValue += item.value;
+            selected.push_back(item.index);
+        }
+    }
+
+    return totalValue;
+}
+
+// 🔹 Main
+int main() {
+    int n, W;
+
+    cout << "Enter number of items: ";
+    cin >> n;
+
+    vector<int> wt(n), val(n);
+
+    cout << "Enter weights:\n";
+    for (int i = 0; i < n; i++) cin >> wt[i];
+
+    cout << "Enter values:\n";
+    for (int i = 0; i < n; i++) cin >> val[i];
+
+    cout << "Enter capacity: ";
+    cin >> W;
+
+    // DP
+    vector<int> dpSelected;
+    int dpResult = knapsackDP(W, wt, val, n, dpSelected);
+
+    // Greedy
+    vector<int> greedySelected;
+    int greedyResult = knapsackGreedy(W, wt, val, n, greedySelected);
+
+    // Output
+    cout << "\n🔹 Dynamic Programming Result: " << dpResult << endl;
+    cout << "Selected items (DP): ";
+    for (int i : dpSelected) cout << i << " ";
+
+    cout << "\n\n🔹 Greedy Result: " << greedyResult << endl;
+    cout << "Selected items (Greedy): ";
+    for (int i : greedySelected) cout << i << " ";
+
+    cout << "\n\nComparison:\n";
+    if (dpResult > greedyResult)
+        cout << "DP gives better optimal solution.\n";
+    else if (dpResult < greedyResult)
+        cout << "Greedy performed better (rare case).\n";
+    else
+        cout << "Both gave same result.\n";
+
+    return 0;
+}
